@@ -3,28 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
   <title>Red de apoyo Paul Moriel</title>
   <link rel="canonical" href="https://ygahdo.github.io/Paul16.1/">
-
-  <!-- Open Graph -->
-  <meta property="og:locale"       content="es_MX" />
-  <meta property="og:type"         content="website" />
-  <meta property="og:title"        content="Red de apoyo Paul Moriel" />
-  <meta property="og:description"  content="Únete a la red de apoyo y registra tu sección." />
-  <meta property="og:url"          content="https://ygahdo.github.io/Paul16.1/" />
-  <meta property="og:site_name"    content="Paul16.1" />
-  <meta property="og:image"        content="https://ygahdo.github.io/Paul16.1/banner.jpg" />
-  <meta property="og:image:alt"    content="Banner Red de apoyo Paul Moriel" />
-  <meta property="og:image:width"  content="1200" />
-  <meta property="og:image:height" content="630" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:title"       content="Red de apoyo Paul Moriel" />
-  <meta name="twitter:description" content="Únete a la red de apoyo y registra tu sección." />
-  <meta name="twitter:image"       content="https://ygahdo.github.io/Paul16.1/banner.jpg" />
-  <meta name="twitter:image:alt"   content="Banner Red de apoyo Paul Moriel" />
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.2.0/firebase-app-compat.js"></script>
@@ -34,83 +14,92 @@
     * { box-sizing:border-box; margin:0; padding:0 }
     body { background:#121212; color:#eee; font-family:sans-serif; padding:1rem }
     .container { max-width:480px; margin:auto; background:#1e1e1e; border-radius:8px; padding:1rem }
-    .banner { width:100%; border-radius:8px; margin-bottom:1rem }
     h1 { text-align:center; margin-bottom:1rem }
     form { display:flex; flex-direction:column; gap:.75rem }
     label { display:flex; flex-direction:column; font-size:.9rem }
-    input {
+    input, button {
       padding:.75rem; border:1px solid #fff; border-radius:4px;
       background:#2c2c2c; color:#eee; font-size:1rem
     }
     input:invalid { border-color:#f44336 }
-    .section-image {
-      width:100%; border-radius:4px; margin:.5rem 0 1rem
+    button { border:none; background:#2962ff; cursor:pointer; }
+    .hidden { display:none }
+    .message { margin-top:1rem; color:#a5d6a7; text-align:center }
+    .strength {
+      font-size:.8rem; margin-top:-.5rem; margin-bottom:.5rem;
+      color:#ccc
     }
-    .privacy {
-      background:#2c2c2c; padding:1rem; border-radius:4px;
-      font-size:.8rem; line-height:1.4; color:#ccc;
-      margin-top:1rem; text-align:justify
-    }
-    button {
-      margin-top:1rem; padding:.75rem; background:#2962ff;
-      color:#fff; border:none; border-radius:4px;
-      font-size:1rem; cursor:pointer
-    }
-    #result {
-      display:none; margin-top:1rem; color:#a5d6a7;
-      background:#2c2c2c; padding:1rem; border-radius:4px
-    }
-    .share-link {
-      margin-top:1rem; word-break:break-all; font-size:.9rem; color:#a5d6a7
-    }
+    .strength.valid { color:#8bc34a }
+    .strength.invalid { color:#f44336 }
   </style>
 </head>
 <body>
   <div class="container">
-    <img src="banner.jpg" alt="Banner Red de apoyo Paul Moriel" class="banner">
     <h1 id="candidateName">Red de apoyo Paul Moriel</h1>
 
-    <form id="form">
+    <!-- formulario de registro básico -->
+    <form id="form-reg">
       <label>
         Nombre completo *
-        <input type="text" id="nombre" required placeholder="Ingresa tu nombre completo">
+        <input type="text" id="nombre" required>
       </label>
       <label>
         Municipio *
-        <input type="text" id="municipio" required placeholder="Ej. Ciudad de México">
+        <input type="text" id="municipio" required>
       </label>
       <label>
         Sección *
-        <input type="text" id="seccion" required placeholder="Ej. 1010">
+        <input type="text" id="seccion" required>
       </label>
-      <img src="seccion.jpg" alt="Cómo ubicar tu sección" class="section-image">
       <label>
         Celular * (10 dígitos)
-        <input type="tel" id="telefono" required pattern="[0-9]{10}" placeholder="5512345678">
+        <input type="tel" id="telefono" required pattern="\d{10}">
       </label>
       <label>
-        ¿Quién te invitó a registrarte? *
-        <input type="text" id="invitado" required placeholder="Nombre de quien te invitó">
+        ¿Quién te invitó? *
+        <input type="text" id="invitado" required>
       </label>
-
-      <div class="privacy">
-        <strong>Aviso de privacidad:</strong><br>
-        Los datos personales recabados a través de este formulario serán utilizados únicamente
-        para fines informativos y de organización relacionados con el apoyo a Paúl Daniel Moriel
-        Quiralte en el proceso electoral correspondiente. La información será tratada con estricta
-        confidencialidad y no será compartida con terceros sin tu consentimiento.<br>
-        Al proporcionar tus datos, aceptas el tratamiento de los mismos conforme a este aviso.
-      </div>
-
       <button type="submit">Enviar</button>
     </form>
 
-    <div id="result"></div>
-    <div id="share" class="share-link"></div>
+    <!-- mensaje de gracias + botón promotor -->
+    <div id="post-reg" class="hidden">
+      <p class="message">¡Muchas gracias por tu apoyo!</p>
+      <button id="btn-promotor">Hacerme promotor</button>
+    </div>
+
+    <!-- formulario promotor -->
+    <form id="form-pro" class="hidden">
+      <label>
+        Apellido paterno *
+        <input type="text" id="apellido1" required>
+      </label>
+      <label>
+        Apellido materno *
+        <input type="text" id="apellido2" required>
+      </label>
+      <label>
+        Nombre(s) *
+        <input type="text" id="nombres" required>
+      </label>
+      <label>
+        Correo electrónico *
+        <input type="email" id="email" required>
+      </label>
+      <label>
+        Contraseña * (min 10 chars, mayúscula, minúscula, número, especial)
+        <input type="password" id="password" required>
+      </label>
+      <div id="pwd-strength" class="strength">La contraseña debe cumplir los requisitos.</div>
+      <button type="submit" id="btn-pro-submit" disabled>Completar registro</button>
+    </form>
+
+    <!-- enlace de seguimiento -->
+    <div id="share" class="hidden message"></div>
   </div>
 
   <script>
-    // 1) Configuración Firebase
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyBUtcNQJZUTJ5bJquwJGCzmPyMz-X6q6Yk",
       authDomain: "paul16-f649c.firebaseapp.com",
@@ -123,74 +112,101 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 2) Parámetros de URL
-    const params   = new URLSearchParams(location.search);
-    const candidate= params.get('candidate') || 'Paul Moriel';
-    const referrer = params.get('ref') || null;
+    // URL params
+    const params = new URLSearchParams(location.search);
+    const candidate = params.get('candidate')||'Paul Moriel';
     document.getElementById('candidateName').textContent = `Red de apoyo ${candidate}`;
 
-    // 3) Generador de IDs y contraseñas
+    // elementos
+    const formReg   = document.getElementById('form-reg');
+    const postReg   = document.getElementById('post-reg');
+    const btnPromo  = document.getElementById('btn-promotor');
+    const formPro   = document.getElementById('form-pro');
+    const shareDiv  = document.getElementById('share');
+    let docId, userId, referrer;
+
+    // utils
     function makeId(len=8){
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       return Array.from({length:len})
-        .map(_=>chars.charAt(Math.floor(Math.random()*chars.length)))
-        .join('');
+        .map(_=>chars.charAt(Math.random()*chars.length|0)).join('');
     }
 
-    // 4) Envío del formulario
-    const form    = document.getElementById('form');
-    const result  = document.getElementById('result');
-    const shareEl = document.getElementById('share');
-
-    form.addEventListener('submit', async e => {
+    // 1) registro básico
+    formReg.addEventListener('submit',async e=>{
       e.preventDefault();
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
+      if(!formReg.checkValidity())return formReg.reportValidity();
 
-      // Datos del usuario
-      const nombre    = document.getElementById('nombre').value.trim();
-      const municipio = document.getElementById('municipio').value.trim();
-      const seccion   = document.getElementById('seccion').value.trim();
-      const telefono  = document.getElementById('telefono').value.trim();
-      const invitado  = document.getElementById('invitado').value.trim();
+      // datos
+      const nombre   = nombre.value.trim();
+      const municipio= municipio.value.trim();
+      const seccion  = seccion.value.trim();
+      const telefono = telefono.value.trim();
+      const invitado = invitado.value.trim();
+      referrer = params.get('ref')||null;
+      userId   = makeId(8);
+      const pwd1  = null;
 
-      // Credenciales propias
-      const userId   = makeId(8);
-      const password = makeId(10);
-
-      const doc = {
-        candidate,
-        referrer,
-        userId,
-        password,
-        nombre,
-        municipio,
-        seccion,
-        telefono,
-        invitado,
+      const data = { candidate, referrer, userId, password:null,
+        nombre, municipio, seccion, telefono, invitado,
         fecha: firebase.firestore.Timestamp.now()
       };
+      const res = await db.collection('usuarios').add(data);
+      docId = res.id;
 
-      try {
-        await db.collection('usuarios').add(doc);
-        form.style.display   = 'none';
-        result.innerHTML     = `
-          <p><strong>Registro exitoso!</strong></p>
-          <p>Tu usuario: <code>${userId}</code><br>
-          Tu contraseña: <code>${password}</code></p>
-          <p>Guárdalos para acceder a tu Dashboard de seguimiento.</p>`;
-        result.style.display = 'block';
+      formReg.classList.add('hidden');
+      postReg.classList.remove('hidden');
+    });
 
-        // Enlace de referido a compartir
-        const base     = `${location.origin}${location.pathname}`;
-        const shareUrl = `${base}?candidate=${encodeURIComponent(candidate)}&ref=${userId}`;
-        shareEl.textContent = `Comparte tu enlace: ${shareUrl}`;
-      } catch(err) {
-        console.error(err);
-        alert('Ocurrió un error al guardar. Intenta de nuevo.');
-      }
+    // 2) mostrar form promotor
+    btnPromo.addEventListener('click',()=>{
+      postReg.classList.add('hidden');
+      formPro.classList.remove('hidden');
+    });
+
+    // 3) validación de contraseña
+    const pwdInput = document.getElementById('password'),
+          strength= document.getElementById('pwd-strength'),
+          btnPro   = document.getElementById('btn-pro-submit');
+    pwdInput.addEventListener('input',()=>{
+      const v = pwdInput.value;
+      const tests = [
+        /.{10,}/.test(v),
+        /[A-Z]/.test(v),
+        /[a-z]/.test(v),
+        /\d/.test(v),
+        /[\W_]/.test(v)
+      ];
+      const ok = tests.every(x=>x);
+      strength.textContent = ok
+        ?"✔ Contraseña segura":"✖ Debe tener 10+ chars, mayúsc, minúsc, número y especial";
+      strength.className = ok?'strength valid':'strength invalid';
+      btnPro.disabled = !ok;
+    });
+
+    // 4) completar registro promotor
+    formPro.addEventListener('submit',async e=>{
+      e.preventDefault();
+      if(!formPro.checkValidity())return formPro.reportValidity();
+
+      // datos adicionales
+      const apellido1 = apellido1.value.trim();
+      const apellido2 = apellido2.value.trim();
+      const nombres   = nombres.value.trim();
+      const email     = email.value.trim();
+      const password  = pwdInput.value;
+
+      // actualiza doc en Firestore
+      await db.collection('usuarios').doc(docId).update({
+        apellido1, apellido2, nombres, email, password
+      });
+
+      formPro.classList.add('hidden');
+      shareDiv.textContent = 
+        `¡Listo! Tu enlace de promotor: ` +
+        `${location.origin + location.pathname}` +
+        `?candidate=${encodeURIComponent(candidate)}&ref=${userId}`;
+      shareDiv.classList.remove('hidden');
     });
   </script>
 </body>
