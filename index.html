@@ -14,6 +14,7 @@
     * { box-sizing:border-box; margin:0; padding:0 }
     body { background:#121212; color:#eee; font-family:sans-serif; padding:1rem }
     .container { max-width:480px; margin:auto; background:#1e1e1e; border-radius:8px; padding:1rem }
+    .banner { width:100%; border-radius:8px; margin-bottom:1rem }
     h1 { text-align:center; margin-bottom:1rem }
     form { display:flex; flex-direction:column; gap:.75rem }
     label { display:flex; flex-direction:column; font-size:.9rem }
@@ -22,6 +23,14 @@
       background:#2c2c2c; color:#eee; font-size:1rem
     }
     input:invalid { border-color:#f44336 }
+    .section-image {
+      width:100%; border-radius:4px; margin:.5rem 0 1rem
+    }
+    .privacy {
+      background:#2c2c2c; padding:1rem; border-radius:4px;
+      font-size:.8rem; line-height:1.4; color:#ccc;
+      margin-top:1rem; text-align:justify
+    }
     button { border:none; background:#2962ff; cursor:pointer; }
     .hidden { display:none }
     .message { margin-top:1rem; color:#a5d6a7; text-align:center }
@@ -31,10 +40,20 @@
     }
     .strength.valid { color:#8bc34a }
     .strength.invalid { color:#f44336 }
+    #result {
+      display:none; margin-top:1rem; color:#a5d6a7;
+      background:#2c2c2c; padding:1rem; border-radius:4px
+    }
+    .share-link {
+      margin-top:1rem; word-break:break-all; font-size:.9rem; color:#a5d6a7
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Banner arriba -->
+    <img src="banner.jpg" alt="Banner Red de apoyo Paul Moriel" class="banner">
+
     <h1 id="candidateName">Red de apoyo Paul Moriel</h1>
 
     <!-- formulario de registro básico -->
@@ -51,6 +70,9 @@
         Sección *
         <input type="text" id="seccion" required>
       </label>
+      <!-- Imagen de sección -->
+      <img src="seccion.jpg" alt="Cómo ubicar tu sección electoral" class="section-image">
+
       <label>
         Celular * (10 dígitos)
         <input type="tel" id="telefono" required pattern="\d{10}">
@@ -87,15 +109,18 @@
         <input type="email" id="email" required>
       </label>
       <label>
-        Contraseña * (min 10 chars, mayúscula, minúscula, número, especial)
+        Contraseña * (10+ chars, mayúscula, minúscula, número, especial)
         <input type="password" id="password" required>
       </label>
-      <div id="pwd-strength" class="strength">La contraseña debe cumplir los requisitos.</div>
+      <div id="pwd-strength" class="strength">
+        La contraseña debe tener 10+ caracteres, mayúscula, minúscula, número y carácter especial.
+      </div>
       <button type="submit" id="btn-pro-submit" disabled>Completar registro</button>
     </form>
 
     <!-- enlace de seguimiento -->
-    <div id="share" class="hidden message"></div>
+    <div id="share" class="hidden share-link"></div>
+
   </div>
 
   <script>
@@ -112,45 +137,44 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // URL params
-    const params = new URLSearchParams(location.search);
-    const candidate = params.get('candidate')||'Paul Moriel';
+    // URL params y encabezado
+    const params    = new URLSearchParams(location.search);
+    const candidate = params.get('candidate') || 'Paul Moriel';
     document.getElementById('candidateName').textContent = `Red de apoyo ${candidate}`;
 
-    // elementos
-    const formReg   = document.getElementById('form-reg');
-    const postReg   = document.getElementById('post-reg');
-    const btnPromo  = document.getElementById('btn-promotor');
-    const formPro   = document.getElementById('form-pro');
-    const shareDiv  = document.getElementById('share');
-    let docId, userId, referrer;
-
-    // utils
+    // Generador de IDs
     function makeId(len=8){
-      const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       return Array.from({length:len})
         .map(_=>chars.charAt(Math.random()*chars.length|0)).join('');
     }
 
-    // 1) registro básico
-    formReg.addEventListener('submit',async e=>{
+    // Elementos
+    const formReg  = document.getElementById('form-reg');
+    const postReg  = document.getElementById('post-reg');
+    const btnPromo = document.getElementById('btn-promotor');
+    const formPro  = document.getElementById('form-pro');
+    const shareEl  = document.getElementById('share');
+    let docId, userId, referrer;
+
+    // 1) Registro básico
+    formReg.addEventListener('submit', async e=>{
       e.preventDefault();
-      if(!formReg.checkValidity())return formReg.reportValidity();
+      if(!formReg.checkValidity()) return formReg.reportValidity();
 
-      // datos
-      const nombre   = nombre.value.trim();
-      const municipio= municipio.value.trim();
-      const seccion  = seccion.value.trim();
-      const telefono = telefono.value.trim();
-      const invitado = invitado.value.trim();
-      referrer = params.get('ref')||null;
-      userId   = makeId(8);
-      const pwd1  = null;
-
-      const data = { candidate, referrer, userId, password:null,
-        nombre, municipio, seccion, telefono, invitado,
-        fecha: firebase.firestore.Timestamp.now()
+      const data = {
+        candidate,
+        referrer: params.get('ref')||null,
+        userId:   makeId(8),
+        password: null,
+        nombre:   nombre.value.trim(),
+        municipio:municipio.value.trim(),
+        seccion:  seccion.value.trim(),
+        telefono: telefono.value.trim(),
+        invitado: invitado.value.trim(),
+        fecha:    firebase.firestore.Timestamp.now()
       };
+      userId = data.userId;
       const res = await db.collection('usuarios').add(data);
       docId = res.id;
 
@@ -158,55 +182,52 @@
       postReg.classList.remove('hidden');
     });
 
-    // 2) mostrar form promotor
-    btnPromo.addEventListener('click',()=>{
+    // 2) Pasar a form de promotor
+    btnPromo.addEventListener('click', ()=>{
       postReg.classList.add('hidden');
       formPro.classList.remove('hidden');
     });
 
-    // 3) validación de contraseña
-    const pwdInput = document.getElementById('password'),
-          strength= document.getElementById('pwd-strength'),
-          btnPro   = document.getElementById('btn-pro-submit');
-    pwdInput.addEventListener('input',()=>{
+    // 3) Validación de contraseña
+    const pwdInput  = document.getElementById('password');
+    const strength  = document.getElementById('pwd-strength');
+    const btnSubmit = document.getElementById('btn-pro-submit');
+
+    pwdInput.addEventListener('input', ()=>{
       const v = pwdInput.value;
-      const tests = [
-        /.{10,}/.test(v),
+      const ok = [
+        v.length >= 10,
         /[A-Z]/.test(v),
         /[a-z]/.test(v),
         /\d/.test(v),
         /[\W_]/.test(v)
-      ];
-      const ok = tests.every(x=>x);
+      ].every(x=>x);
+
       strength.textContent = ok
-        ?"✔ Contraseña segura":"✖ Debe tener 10+ chars, mayúsc, minúsc, número y especial";
-      strength.className = ok?'strength valid':'strength invalid';
-      btnPro.disabled = !ok;
+        ? '✔ Contraseña válida'
+        : '✖ Debe usar 10+ chars, mayúscula, minúscula, número y especial';
+      strength.className = ok ? 'strength valid' : 'strength invalid';
+      btnSubmit.disabled = !ok;
     });
 
-    // 4) completar registro promotor
-    formPro.addEventListener('submit',async e=>{
+    // 4) Completar registro como promotor
+    formPro.addEventListener('submit', async e=>{
       e.preventDefault();
-      if(!formPro.checkValidity())return formPro.reportValidity();
+      if(!formPro.checkValidity()) return formPro.reportValidity();
 
-      // datos adicionales
-      const apellido1 = apellido1.value.trim();
-      const apellido2 = apellido2.value.trim();
-      const nombres   = nombres.value.trim();
-      const email     = email.value.trim();
-      const password  = pwdInput.value;
-
-      // actualiza doc en Firestore
       await db.collection('usuarios').doc(docId).update({
-        apellido1, apellido2, nombres, email, password
+        apellido1: apellido1.value.trim(),
+        apellido2: apellido2.value.trim(),
+        nombres:   nombres.value.trim(),
+        email:     email.value.trim(),
+        password:  pwdInput.value
       });
 
       formPro.classList.add('hidden');
-      shareDiv.textContent = 
-        `¡Listo! Tu enlace de promotor: ` +
-        `${location.origin + location.pathname}` +
-        `?candidate=${encodeURIComponent(candidate)}&ref=${userId}`;
-      shareDiv.classList.remove('hidden');
+      shareEl.textContent = `Tu enlace de promotor: ${
+        location.origin + location.pathname
+      }?candidate=${encodeURIComponent(candidate)}&ref=${userId}`;
+      shareEl.classList.remove('hidden');
     });
   </script>
 </body>
